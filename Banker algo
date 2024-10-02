@@ -1,0 +1,74 @@
+class BankersAlgorithm:
+    def __init__(self, available, max_claim, allocation):
+        self.available = available
+        self.max_claim = max_claim
+        self.allocation = allocation
+        self.need = [
+            [max_claim[i][j] - allocation[i][j] 
+             for j in range(len(available))]
+            for i in range(len(allocation))
+        ]
+
+    def is_safe(self):
+        work = self.available.copy()
+        finish = [False] * len(self.allocation)
+        
+        while False in finish:
+            safe = False
+            for i, process in enumerate(self.need):
+                if not finish[i] and all(need <= work[j] for j, need in enumerate(process)):
+                    work = [work[j] + self.allocation[i][j] for j in range(len(work))]
+                    finish[i] = True
+                    safe = True
+                    break
+            if not safe:
+                return False
+        return True
+
+    def request_resources(self, process_id, request):
+        if any(request[j] > self.need[process_id][j] for j in range(len(request))):
+            return False, "Error: Request exceeds maximum claim"
+        
+        if any(request[j] > self.available[j] for j in range(len(request))):
+            return False, "Error: Resources not available"
+        
+        # Temporarily allocate resources
+        self.available = [self.available[j] - request[j] for j in range(len(request))]
+        self.allocation[process_id] = [self.allocation[process_id][j] + request[j] for j in range(len(request))]
+        self.need[process_id] = [self.need[process_id][j] - request[j] for j in range(len(request))]
+        
+        if self.is_safe():
+            return True, "Request granted safely"
+        else:
+            # Rollback changes
+            self.available = [self.available[j] + request[j] for j in range(len(request))]
+            self.allocation[process_id] = [self.allocation[process_id][j] - request[j] for j in range(len(request))]
+            self.need[process_id] = [self.need[process_id][j] + request[j] for j in range(len(request))]
+            return False, "Request denied: Unsafe state"
+
+    def print_state(self):
+        print("Available:", self.available)
+        print("Max Claim:", self.max_claim)
+        print("Allocation:", self.allocation)
+        print("Need:", self.need)
+
+# Example usage
+if __name__ == "__main__":
+    available = [3, 3, 2]
+    max_claim = [[7, 5, 3], [3, 2, 2], [9, 0, 2], [2, 2, 2], [4, 3, 3]]
+    allocation = [[0, 1, 0], [2, 0, 0], [3, 0, 2], [2, 1, 1], [0, 0, 2]]
+
+    banker = BankersAlgorithm(available, max_claim, allocation)
+    
+    print("Initial State:")
+    banker.print_state()
+    
+    print("\nIs the system safe?", banker.is_safe())
+    
+    process_id = 1
+    request = [1, 0, 2]
+    success, message = banker.request_resources(process_id, request)
+    print(f"\nRequest result for process {process_id}:", message)
+    
+    print("\nFinal State:")
+    banker.print_state()
