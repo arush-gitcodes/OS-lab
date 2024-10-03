@@ -1,0 +1,47 @@
+processes[i].arrival_time = 0;  // Assuming all processes arrive at the same time
+void fcfs(struct Process processes[], int n) {
+    int current_time = 0;
+
+    for (int i = 0; i < n; i++) {
+// Since all processes arrive at the same time (0),// we just need to add the burst time to the current time
+        current_time += processes[i].burst_time;
+        processes[i].completion_time = current_time;
+        processes[i].turnaround_time = processes[i].completion_time - processes[i].arrival_time;
+        processes[i].waiting_time = processes[i].turnaround_time - processes[i].burst_time;
+    }
+
+    print_results(processes, n);
+}
+
+
+void sjf_non_preemptive(struct Process processes[], int n) {
+    int completed = 0, current_time = 0;
+
+    while (completed != n) {
+        int shortest = -1;
+        int min_burst = INT_MAX;
+
+        // Find the process with the shortest burst time that has arrived and is not completed
+        for (int i = 0; i < n; i++) {
+            if (processes[i].arrival_time <= current_time && processes[i].remaining_time > 0) {
+                if (processes[i].burst_time < min_burst) {
+                    min_burst = processes[i].burst_time;
+                    shortest = i;
+                }
+            }
+        }
+
+        if (shortest == -1) {
+            current_time++;  // No process is available, so increment time
+        } else {
+            // Execute the process with the shortest burst time
+            current_time += processes[shortest].burst_time;
+            processes[shortest].completion_time = current_time;
+            processes[shortest].remaining_time = 0;  // Mark process as completd
+            completed++;
+        }
+    }
+
+    calculate_times(processes, n);
+    print_results(processes, n);
+}
