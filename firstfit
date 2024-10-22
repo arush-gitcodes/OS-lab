@@ -1,0 +1,86 @@
+#include <stdio.h>
+
+// Structure to represent a hole
+struct Hole {
+    int size;
+    int original_size;
+    int id;
+};
+
+// Structure to represent a process
+struct Process {
+    int size;
+    int allocated;
+    int hole_id;
+};
+
+// Function to perform First Fit memory allocation
+void firstFitAllocation(struct Hole holes[], int nh, struct Process processes[], int np) {
+    for (int i = 0; i < np; i++) {
+        processes[i].allocated = 0; // Initialize as unallocated
+        for (int j = 0; j < nh; j++) {
+            if (holes[j].size >= processes[i].size) {
+                // Allocate process to this hole
+                processes[i].allocated = 1;
+                processes[i].hole_id = j;
+                holes[j].size -= processes[i].size; // Decrement hole size
+                break; // Stop after finding the first suitable hole
+            }
+        }
+    }
+}
+
+// Function to print the allocation results
+void printResults(struct Hole holes[], int nh, struct Process processes[], int np) {
+    printf("\nProcess Allocation:\n");
+    for (int i = 0; i < np; i++) {
+        if (processes[i].allocated) {
+            printf("Process %d (Size: %d) allocated to Hole %d\n", i + 1, processes[i].size, processes[i].hole_id + 1);
+        } else {
+            printf("Process %d (Size: %d) is not allocated\n", i + 1, processes[i].size);
+        }
+    }
+
+    printf("\nHole Availability:\n");
+    for (int i = 0; i < nh; i++) {
+        printf("Hole %d - Original Size: %d, Available Size: %d\n", i + 1, holes[i].original_size, holes[i].size);
+    }
+}
+
+int main() {
+    int nh, np;
+
+    // Get number of holes
+    printf("Enter the number of holes: ");
+    scanf("%d", &nh);
+
+    struct Hole holes[nh];
+
+    // Get size of each hole
+    for (int i = 0; i < nh; i++) {
+        printf("Enter size of Hole %d: ", i + 1);
+        scanf("%d", &holes[i].size);
+        holes[i].original_size = holes[i].size; // Store the original size
+        holes[i].id = i;
+    }
+
+    // Get number of processes
+    printf("Enter the number of processes: ");
+    scanf("%d", &np);
+
+    struct Process processes[np];
+
+    // Get size of each process
+    for (int i = 0; i < np; i++) {
+        printf("Enter memory requirement of Process %d: ", i + 1);
+        scanf("%d", &processes[i].size);
+    }
+
+    // Perform first fit allocation
+    firstFitAllocation(holes, nh, processes, np);
+
+    // Print results
+    printResults(holes, nh, processes, np);
+
+    return 0;
+}
