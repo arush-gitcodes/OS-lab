@@ -1,0 +1,104 @@
+#include <stdio.h>
+
+// Structure to represent a hole
+struct Hole {
+    int size;
+    int original_size;
+    int id;
+};
+
+// Structure to represent a process
+struct Process {
+    int size;
+    int allocated;
+    int hole_id;
+};
+
+// Function to perform bubble sort on holes based on size in ascending order
+void sortHoles(struct Hole holes[], int nh) {
+    for (int i = 0; i < nh - 1; i++) {
+        for (int j = 0; j < nh - i - 1; j++) {
+            if (holes[j].size > holes[j + 1].size) {
+                // Swap the holes
+                struct Hole temp = holes[j];
+                holes[j] = holes[j + 1];
+                holes[j + 1] = temp;
+            }
+        }
+    }
+}
+
+// Function to perform Best Fit memory allocation
+void bestFitAllocation(struct Hole holes[], int nh, struct Process processes[], int np) {
+    for (int i = 0; i < np; i++) {
+        processes[i].allocated = 0; // Initialize as unallocated
+
+        // Sort holes by size for each process allocation
+        sortHoles(holes, nh);
+
+        for (int j = 0; j < nh; j++) {
+            if (holes[j].size >= processes[i].size) {
+                // Allocate process to this hole
+                processes[i].allocated = 1;
+                processes[i].hole_id = holes[j].id;
+                holes[j].size -= processes[i].size; // Decrement hole size
+                break; // Stop after finding the best fit hole
+            }
+        }
+    }
+}
+
+// Function to print the allocation results
+void printResults(struct Hole holes[], int nh, struct Process processes[], int np) {
+    printf("\nProcess Allocation:\n");
+    for (int i = 0; i < np; i++) {
+        if (processes[i].allocated) {
+            printf("Process %d (Size: %d) allocated to Hole %d\n", i + 1, processes[i].size, processes[i].hole_id + 1);
+        } else {
+            printf("Process %d (Size: %d) is not allocated\n", i + 1, processes[i].size);
+        }
+    }
+
+    printf("\nHole Availability:\n");
+    for (int i = 0; i < nh; i++) {
+        printf("Hole %d - Original Size: %d, Available Size: %d\n", holes[i].id + 1, holes[i].original_size, holes[i].size);
+    }
+}
+
+int main() {
+    int nh, np;
+
+    // Get number of holes
+    printf("Enter the number of holes: ");
+    scanf("%d", &nh);
+
+    struct Hole holes[nh];
+
+    // Get size of each hole
+    for (int i = 0; i < nh; i++) {
+        printf("Enter size of Hole %d: ", i + 1);
+        scanf("%d", &holes[i].size);
+        holes[i].original_size = holes[i].size; // Store the original size
+        holes[i].id = i;
+    }
+
+    // Get number of processes
+    printf("Enter the number of processes: ");
+    scanf("%d", &np);
+
+    struct Process processes[np];
+
+    // Get size of each process
+    for (int i = 0; i < np; i++) {
+        printf("Enter memory requirement of Process %d: ", i + 1);
+        scanf("%d", &processes[i].size);
+    }
+
+    // Perform best fit allocation
+    bestFitAllocation(holes, nh, processes, np);
+
+    // Print results
+    printResults(holes, nh, processes, np);
+
+    return 0;
+}
